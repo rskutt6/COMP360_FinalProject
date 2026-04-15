@@ -1,7 +1,7 @@
 #lang racket
 
 (require "parser.rkt"
-         "tokenizer.rkt")
+         "lexer.rkt")
 
 (define in (open-input-file "test.txt"))
 
