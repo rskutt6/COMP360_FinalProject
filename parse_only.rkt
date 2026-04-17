@@ -2,13 +2,13 @@
 (require "parser.rkt" "lexer.rkt")
 
 (define (read-syntax path port)
+  (displayln "are we here")
   (define parse-tree (parse path (make-tokenizer port path)))
   (strip-bindings
-   #`(module basic-parser-mod basic/parse-only
+   #`(module basic-parser-mod COMP360_FinalProject/parse-only
        #,parse-tree)))
 
-(module+ reader
-  (provide read-syntax))
+(provide read-syntax)
 
 (define-macro (parser-only-mb PARSE-TREE)
   #'(#%module-begin
