@@ -30,7 +30,7 @@
 
 ;; Room Expansion
 (define (expand-room node)
-  (define room-name (find-first 'ID node))
+  (define room-name (second node))
   ;; print room name
   (printf "Room: ~a\n" room-name)
   (define desc (find-desc node))
@@ -39,7 +39,7 @@
 
   ;; Items - find all item nodes inside the room
   (for ([item (find-all-subrules 'item node)])
-    (define item-name (find-first 'ID item))
+    (define item-name (second item))
     (printf " Item: ~a\n" item-name)
     ;; item description
     (define item-desc (find-desc item))
@@ -100,7 +100,7 @@
     (for/first ([sub (find-all-subrules 'desc node)])
       sub))
   (and desc-node
-       (strip-quotes (find-first 'STRING desc-node))))
+       (strip-quotes (second desc-node))))
 
 ;; find-type
 (define (find-type node)
@@ -108,7 +108,7 @@
     (for/first ([sub (find-all-subrules 'type node)])
       sub))
   (and type-node
-       (find-first 'ID type-node)))
+       (second type-node)))
 
 ;; find-number-in-power
 (define (find-number-in-power node)
