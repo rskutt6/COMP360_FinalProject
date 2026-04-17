@@ -1,7 +1,7 @@
 #lang racket
 
 ;; import your components
-(require "tokenizer.rkt"
+(require "lexer.rkt"
          "parser.rkt"     ;; generated from your brag file
          "expander.rkt")
 
@@ -31,4 +31,4 @@
 ;; =========================
 
 (module+ main
-  (run-file "test1.txt"))
+  (run-file "test.txt"))
