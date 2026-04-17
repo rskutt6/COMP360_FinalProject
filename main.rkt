@@ -31,4 +31,7 @@
 ;; =========================
 
 (module+ main
-  (run-file "test.txt"))
+  (displayln "--- test.txt ---")
+  (run-file "test.txt")
+  (displayln "--- test2.txt ---")
+  (run-file "test2.txt"))
