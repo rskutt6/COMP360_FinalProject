@@ -91,7 +91,7 @@
           '())
       ;; search children
       (append-map (lambda (child)
-                    (find-all subrules rule-name child))
+                    (find-all-subrules rule-name child))
                   (rest node)))]))
 
 ;; find-desc
@@ -104,7 +104,7 @@
 
 ;; find-type
 (define (find-type node)
-  (define type node
+  (define type-node
     (for/first ([sub (find-all-subrules 'type node)])
       sub))
   (and type-node
