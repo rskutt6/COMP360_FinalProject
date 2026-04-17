@@ -1,5 +1,5 @@
 #lang br/quicklang
-(require "parser.rkt" "lexer.rkt")
+(require "parser.rkt" "tokenizer.rkt")
 
 (define (read-syntax path port)
   (displayln "are we here")
