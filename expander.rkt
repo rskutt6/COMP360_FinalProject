@@ -1,140 +1,206 @@
-#lang racket
+#lang br/quicklang
 
-(require racket/match)
+(require racket/match
+         brag/support)
 
-;; expand-program = takes parse tree and prints result
-(provide expand-program)
+;; the whole parsed program will first be handed to dungeon-module-begin
 
-(define (expand-program parse-tree)
-  (define tree
-    (if (syntax? parse-tree)
-    (syntax->datum parse-tree)
-    parse-tree))
+(provide (rename-out [dungeon-module-begin #%module-begin]))
+(provide (matching-identifiers-out
+          #rx"^(program|room|desc|item|type|monster|exit|power)$"
+          (all-defined-out)))
 
-  ;; printed header
-  (displayln " Expanded Adventure ")
-  ;; walk through tree
-  (expand-node tree))
+;; runtime data
 
-(define (expand-node node)
-  (cond
-    [(not (list? node)) (void)] ;; ignore if not a list
-    [(and (pair? node) (eq? (first node) 'program))
-     (for-each expand-node (rest node))]
-    ;; if a room is found
-    [(and (pair? node) (eq? (first node) 'room))
-     (expand-room node)]
-    ;; keep searching
-    [else
-     (for-each expand-node (rest node))]))
+(struct game (rooms) #:transparent)
+(struct room-v (name desc items monsters exits power) #:transparent)
+(struct item-v (name desc type) #:transparent)
+(struct monster-v (name hp) #:transparent)
+(struct exit-v (direction destination) #:transparent)
 
-;; Room Expansion
-(define (expand-room node)
-  (define room-name (find-first 'ID node))
-  ;; print room name
-  (printf "Room: ~a\n" room-name)
-  (define desc (find-desc node))
-  (when desc
-    (printf " Description: ~a\n" desc))
+;; small wrapper values used while assembling room and items.
 
-  ;; Items - find all item nodes inside the room
-  (for ([item (find-all-subrules 'item node)])
-    (define item-name (find-first 'ID item))
-    (printf " Item: ~a\n" item-name)
-    ;; item description
-    (define item-desc (find-desc item))
-    (when item-desc
-      (printf " Desc: ~a\n" item-desc))
-    ;; item type
-    (define item-type (find-type item))
-    (when item-type
-      (printf " Type: ~a\n" item-type)))
+(struct desc-node (text) #:transparent)
+(struct item-node (value) #:transparent)
+(struct monster-node (value) #:transparent)
+(struct exit-node (value) #:transparent)
+(struct power-node (value) #:transparent)
+(struct type-node (value) #:transparent)
 
-  ;; Monsters - find all monster nodes
-  (for ([monster (find-all-subrules 'monster node)])
-    (define vals (find-direct-values monster '(ID NUMBER)))
-    (when (=(length vals) 2)
-      (printf " Monster: ~a (power ~a)\n"
-              (first vals)
-              (second vals))))
+;; HELPER: remove surrounding quotes from strings
 
-  ;; Exits - find all exit nodes
-  (for ([exit (find-all-subrules 'exit node)])
-    (define vals (find-direct-values exit '(ID ID)))
-    (when (= (length vals) 2)
-      (printf " Exit: ~a -> ~a\n"
-              (first vals)
-              (second vals)))))
-
-;; Helper Functions
-
-;; search the tree for the first occurence of a token type
-(define (find-first token-name node)
-  (cond
-    [(not (list? node)) #f] ;; if not a list there is nothing to search
-    [(and (= (length node) 2) ;; if node is a token
-          (eq? (first node) token-name))
-     (second node)]
-    [else
-     (for/first ([child node]
-                 #:when (find-first token-name child))
-       (find-first token-name child))]))
-
-;; find all subtrees that match a rule name
-(define (find-all-subrules rule-name node)
-  (cond
-    [(not (list? node)) '()]
-    [else
-     (append
-      (if (and (pair? node) (eq? (first node) rule-name))
-          (list node)
-          '())
-      ;; search children
-      (append-map (lambda (child)
-                    (find-all subrules rule-name child))
-                  (rest node)))]))
-
-;; find-desc
-(define (find-desc node)
-  (define desc-node
-    (for/first ([sub (find-all-subrules 'desc node)])
-      sub))
-  (and desc-node
-       (strip-quotes (find-first 'STRING desc-node))))
-
-;; find-type
-(define (find-type node)
-  (define type node
-    (for/first ([sub (find-all-subrules 'type node)])
-      sub))
-  (and type-node
-       (find-first 'ID type-node)))
-
-;; find-number-in-power
-(define (find-number-in-power node)
-  (define power-node
-    (for/first ([sub (find-all-subrules 'power node)])
-      sub))
-  (and power-node
-       (find-first 'NUMBER power-node)))
-
-;; find-direct-values
-(define (find-direct-values node expected-kinds)
-  (define children (rest node))
-  (for/list ([child children]
-             #:when (and (list? child)
-                         (= (length child) 2)
-                         (symbol? (first child))))
-    (second child)))
-
-;; strip-quotes
-(define (strip-quotes s)
+(define (unquote s)
   (if (and (string? s)
            (>= (string-length s) 2)
-           (equal? (substring s 0 1) "\"")
-           (equal? (substring s (- (string-length s) 1)) "\""))
-      (substring s 1 (- (string-length s) 1))
+           (string=? (substring s 0 1) "\"") ; first char is "
+           (string=? (substring s (sub1 (string-length s))) "\"")) ; last char is "
+      ;; strip off the first and last character
+      (substring s 1 (sub1 (string-length s)))
+      ;; otherwise leave unchanged
       s))
+
+;; BUILD AN ITEM FROM ITS FIELDS
+
+;; function walks over fields, picks out the desc and type, and produces one final item-v stuct
+(define (build-item name fields)
+  ;; start with not found yet values
+  (define desc-text #f)
+  (define item-type #f)
+
+  ;; loop over each field inside the item
+  (for ([f field])
+    (match f
+      ;; if field = desc node, extract text, remove quotes and store it
+      [(desc-node txt)
+       (set! desc-text (unquote txt))]
+
+      ;; if the field is a type node, store the type
+      [(type-node t)
+       (set! item-type t)]
+
+      ;; any other field is invalid
+      [_ (error 'build-item "invalid item field: ~a" f)]))
+
+  ;; return final item value
+  (item-v name desc-text item-type))
+
+;; BUILD A ROOM FROM ITS ELEMENTS
+
+(define (build-room name elements)
+  ;; fields we expect to accumulate
+  (define desc-text #f)
+  (define items '())
+  (define monsters '())
+  (define exits '())
+  (define room-power #f)
+
+  ;; walk through each element inside the room
+  (for ([el elements])
+    (match el
+      ;; Room desc
+      [(desc-node txt)
+       (set! desc-text (unquote txt))]
+
+      ;; Item element
+      [(item-node i)
+       (set! items (cons i items))]
+
+      ;; Monster element
+      [(monster-node m)
+       (set! monsters (cons m monsters))]
+
+      ;; Exit element
+      [(exit-node e)
+       (set! exits (cons e exits))]
+
+      ;; Power element
+      [(power-node p)
+       (set! room-power p)]
+
+      ;; anything else not allowed
+      [_ (error 'build-room "invalid room element: ~a" el)]))
+
+  ;; reverse restores the source order (because list was built with cons)
+  (room-v name
+          desc-text
+          (reverse items)
+          (reverse monsters)
+          (reverse exits)
+          room-power))
+
+;; PARSE_TREE EXPANDERS
+
+;; ---room---
+;; each room will expand into a definition
+
+(define-macro (room NAME ELEMENT ...)
+  (with-pattern ([ROOM-ID (prefix-id "room-" #'NAME #:source #'NAME)])
+    (syntax/loc caller-stx
+      (define ROOM-ID
+        (build-room NAME (list ELEMENT ...))))))
+
+;; ---desc---
+
+(define-macro (desc STR)
+  #'(desc-node STR))
+
+;; ---item---
+
+(define-macro (item NAME FIELD ...)
+  #'(item-node (build-item NAME (list FIELD ...))))
+
+;; ---type---
+
+(define-macro (type NAME)
+  #'(type-node NAME))
+
+;; ---monster---
+
+(define-macro (monster NAME HP)
+  #'(monster-node (monster-v NAME HP)))
+
+;; ---exit---
+
+(define-macro (exit DIR DEST)
+  #'(exit-node (exit-v DIR DEST)))
+
+;; ---power---
+
+(define-macro (power N)
+  #'(power-node N))
+
+;; -----dungeon-module-begin-----
+;; macro for the whole program
+
+(define-macro (dungeon-module-begin (program ROOM ...))
+  (with-pattern
+      ([((room ROOM-NAME ELEMENT ...) ...) #'(ROOM ...)]
+       [(ROOM-ID ...) (prefix-id "room-" #'(ROOM-NAME ...))])
+    #'(#%module-begin
+       ;; first expand each room into a definition
+       ROOM ...
+       (define game-world
+         (game (hasheq ROOM-NAME ROOM-ID ...)))
+       (provide game-world))))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+           
 
   
   
