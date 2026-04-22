@@ -2,7 +2,7 @@
 
 program : room*
 
-room : LPAREN /"room" ID room-body RPAREN
+room : /LPAREN /"room" ID room-body /RPAREN
 
 room-body : room-element*
           @ room-element*
@@ -13,9 +13,9 @@ room-element : desc
              | exit
              | power
 
-desc : LPAREN /"desc" STRING RPAREN
+desc : /LPAREN /"desc" STRING /RPAREN
 
-item : LPAREN /"item" ID item-body RPAREN
+item : /LPAREN /"item" ID item-body /RPAREN
 
 item-body : item-field*
           @ item-field*
@@ -23,10 +23,10 @@ item-body : item-field*
 item-field : desc
            | type
 
-type : LPAREN /"type" ID RPAREN
+type : /LPAREN /"type" ID /RPAREN
 
-monster : LPAREN /"monster" ID NUMBER RPAREN
+monster : /LPAREN /"monster" ID NUMBER /RPAREN
 
-exit : LPAREN /"exit" ID ID RPAREN
+exit : /LPAREN /"exit" ID ID /RPAREN
 
-power : LPAREN /"power" NUMBER RPAREN
+power : /LPAREN /"power" NUMBER /RPAREN

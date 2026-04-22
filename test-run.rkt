@@ -8,6 +8,6 @@
 (define parse-tree
   (parse "test.txt" (make-tokenizer in)))
 
-(pretty-print parse-tree)
+(pretty-print (syntax->datum parse-tree))
 
 (close-input-port in)
