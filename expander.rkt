@@ -48,7 +48,7 @@
   (define item-type #f)
 
   ;; loop over each field inside the item
-  (for ([f field])
+  (for ([f fields])
     (match f
       ;; if field = desc node, extract text, remove quotes and store it
       [(desc-node txt)
