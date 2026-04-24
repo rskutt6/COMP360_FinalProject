@@ -1,10 +1,14 @@
-#lang br
-(require "lexer.rkt" brag/support)
+#lang br/quicklang
+(require brag/support "tokenizer.rkt")
 
-(define (make-tokenizer ip [path #f]) ; has an optional second argument, path
-  (port-count-lines! ip)
-  (lexer-file-path path) ; let's us tell the lexer where the source is, for source locations!
-  (define (next-token) (basic-lexer ip))
-  next-token)
+(define (read-syntax path port)
+  (define tokens (apply-tokenizer make-tokenizer port))
+  (strip-bindings
+   #`(module basic-tokens-mod basic/tokenize-only
+       #,@tokens)))
+(module+ reader (provide read-syntax))
 
-(provide make-tokenizer)
+(define-macro (tokenize-only-mb TOKEN ...)
+  #'(#%module-begin
+     (list TOKEN ...)))
+(provide (rename-out [tokenize-only-mb #%module-begin]))

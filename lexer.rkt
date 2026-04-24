@@ -1,10 +1,7 @@
 #lang racket
 
 (require brag/support)
-(provide make-tokenizer)
 
-(define (make-tokenizer port)
-  (define (next-token)
     (define dungeon-lexer
       (lexer
 
@@ -40,9 +37,8 @@
        [":" (token 'COLON lexeme)]
        
        ; provided:
-       [whitespace (next-token)] ; skip whitespace
-       [any-char (next-token)]   ; ignore unrecognized characters
+       [whitespace (token lexeme #:skip? #t)] ; skip whitespace
+       [any-char (token lexeme #:skip? #t)]   ; ignore unrecognized characters
        [(eof) eof]))             ; end of file
 
-    (dungeon-lexer port))
-  next-token)
+(provide dungeon-lexer)

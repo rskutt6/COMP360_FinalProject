@@ -1,7 +1,8 @@
 #lang br/quicklang
 
 (require racket/match
-         brag/support)
+         brag/support
+         "game.rkt")
 
 ;; the whole parsed program will first be handed to dungeon-module-begin
 
@@ -175,6 +176,7 @@
        (define game-world
          (game (hasheq ROOM-NAME ... ROOM-ID ...)))
        (displayln game-world)
+       (play game-world)
        (provide game-world))))
 
 

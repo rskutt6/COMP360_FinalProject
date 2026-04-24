@@ -5,10 +5,10 @@
   (displayln "are we here")
   (define parse-tree (parse path (make-tokenizer port path)))
   (strip-bindings
-   #`(module basic-parser-mod COMP360_FinalProject/parse-only
+   #`(module basic-parser-mod COMP360_FinalProject/parse_only
        #,parse-tree)))
 
-(provide read-syntax)
+(module+ reader (provide read-syntax))
 
 (define-macro (parser-only-mb PARSE-TREE)
   #'(#%module-begin
