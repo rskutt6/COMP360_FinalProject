@@ -1,4 +1,4 @@
-#lang COMP360_FinalProject
+#lang comp360_FinalProject
 
 (room wake
   (desc "You awake underwater")
