@@ -7,7 +7,7 @@
 
 (provide (rename-out [dungeon-module-begin #%module-begin]))
 (provide (matching-identifiers-out
-          #rx"^(program|room|desc|item|type|monster|exit|power)$"
+          #rx"^(program|room|room-body|room-element|desc|item|item-body|item-field|type|monster|exit|power)$"
           (all-defined-out)))
 
 ;; runtime data
@@ -113,11 +113,24 @@
 ;; ---room---
 ;; each room will expand into a definition
 
-(define-macro (room NAME ELEMENT ...)
+(define-macro (room NAME BODY)
   (with-pattern ([ROOM-ID (prefix-id "room-" #'NAME #:source #'NAME)])
     (syntax/loc caller-stx
       (define ROOM-ID
-        (build-room NAME (list ELEMENT ...))))))
+        (build-room NAME BODY)))))
+
+(define-macro (room-body ELEMENT ...)
+  #'(list ELEMENT ...))
+
+(define-macro (room-element ELEMENT)
+  #'ELEMENT)
+
+(define-macro (item-body FIELD ...)
+  #'(list FIELD ...))
+
+(define-macro (item-field FIELD)
+  #'FIELD)
+
 
 ;; ---desc---
 
@@ -126,8 +139,8 @@
 
 ;; ---item---
 
-(define-macro (item NAME FIELD ...)
-  #'(item-node (build-item NAME (list FIELD ...))))
+(define-macro (item NAME BODY)
+  #'(item-node (build-item NAME BODY)))
 
 ;; ---type---
 
@@ -161,6 +174,7 @@
        ROOM ...
        (define game-world
          (game (hasheq ROOM-NAME ... ROOM-ID ...)))
+       (displayln game-world)
        (provide game-world))))
 
 
