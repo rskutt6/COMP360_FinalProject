@@ -1,5 +1,5 @@
 #lang br/quicklang
-(require "parser.rkt" "tokenizer.rkt")
+(require "parser.rkt" "lexer.rkt")
 
 (define (read-syntax path port)
   (define parse-tree (parse path (make-tokenizer port path)))
