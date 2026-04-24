@@ -1,4 +1,4 @@
-#lang reader "main.rkt"
+#lang COMP360_FinalProject
 
 (room cave
   (desc "A dark cave dripping with water")
