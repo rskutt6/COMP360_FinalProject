@@ -2,7 +2,7 @@
 (require "parser.rkt" "tokenizer.rkt")
 
 (define (read-syntax path port)
-  (define parse-tree (parse path (make-tokenizer port)))
+  (define parse-tree (parse path (make-tokenizer port path)))
   (strip-bindings
    #`(module basic-parser-mod COMP360_FinalProject/expander
        #,parse-tree)))

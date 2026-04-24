@@ -13,11 +13,11 @@
 
 ;; runtime data
 
-(struct game (rooms) #:transparent)
-(struct room-v (name desc items monsters exits power) #:transparent)
-(struct item-v (name desc type) #:transparent)
-(struct monster-v (name hp) #:transparent)
-(struct exit-v (direction destination) #:transparent)
+;(struct game (rooms) #:transparent)
+;(struct room-v (name desc items monsters exits power) #:transparent)
+;(struct item-v (name desc type) #:transparent)
+;(struct monster-v (name hp) #:transparent)
+;(struct exit-v (direction destination) #:transparent)
 
 ;; small wrapper values used while assembling room and items.
 
@@ -171,11 +171,9 @@
       ([((room ROOM-NAME ELEMENT ...) ...) #'(ROOM ...)]
        [(ROOM-ID ...) (prefix-id "room-" #'(ROOM-NAME ...))])
     #'(#%module-begin
-       ;; first expand each room into a definition
        ROOM ...
        (define game-world
-         (game (hasheq ROOM-NAME ... ROOM-ID ...)))
-       (displayln game-world)
+         (game (make-hasheq (list (cons ROOM-NAME ROOM-ID) ...))))
        (play game-world)
        (provide game-world))))
 
