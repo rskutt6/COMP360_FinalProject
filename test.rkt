@@ -6,7 +6,6 @@
     (desc "A rusted dagger")
     (type weapon))
   (power 10)
-  (exit north maze1)
   (exit east kelp))
 
 (room kelp
