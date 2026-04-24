@@ -1,3 +1,5 @@
+#lang reader "main.rkt"
+
 (room cave
   (desc "A dark cave dripping with water")
   (monster bat 15)
