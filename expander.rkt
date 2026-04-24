@@ -160,7 +160,7 @@
        ;; first expand each room into a definition
        ROOM ...
        (define game-world
-         (game (hasheq ROOM-NAME ROOM-ID ...)))
+         (game (hasheq ROOM-NAME ... ROOM-ID ...)))
        (provide game-world))))
 
 
