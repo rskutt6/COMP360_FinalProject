@@ -173,7 +173,7 @@
     #'(#%module-begin
        ROOM ...
        (define game-world
-         (game (make-hasheq (list (cons ROOM-NAME ROOM-ID) ...))))
+         (game (list (cons ROOM-NAME ROOM-ID) ...)))
        (play game-world)
        (provide game-world))))
 

@@ -5,7 +5,7 @@ program : room*
 room : /LPAREN /"room" ID room-body /RPAREN
 
 room-body : room-element*
-          @ room-element*
+          
 
 room-element : desc
              | item
@@ -18,7 +18,7 @@ desc : /LPAREN /"desc" STRING /RPAREN
 item : /LPAREN /"item" ID item-body /RPAREN
 
 item-body : item-field*
-          @ item-field*
+          
 
 item-field : desc
            | type

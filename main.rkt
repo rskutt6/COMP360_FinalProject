@@ -4,7 +4,7 @@
 (define (read-syntax path port)
   (define parse-tree (parse path (make-tokenizer port path)))
   (strip-bindings
-   #`(module basic-parser-mod COMP360_FinalProject/expander
+   #`(module dungeon-mod "expander.rkt"
        #,parse-tree)))
 
 (module+ reader
