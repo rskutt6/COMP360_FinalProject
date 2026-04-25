@@ -70,9 +70,10 @@
     (cond
       [(null? (room-v-items r)) player-power]
       [else
-       (displayln "Type 'take <item>' to pick up an item, or 'continue' to proceed.")
+       (displayln "Type 'take <item>' to pick up an item, 'continue' to proceed, or 'quit' to exit.")
        (display "> ")
        (define item-input (read-line))
+       (when (equal? item-input "quit") (displayln "Goodbye!") (exit))
        (if (and (>= (string-length item-input) 5)
          (equal? (substring item-input 0 5) "take "))
            (let* ([item-name (substring item-input 5)]
@@ -97,6 +98,7 @@
           (printf "A ~a blocks your path! (hp: ~a)\n" (monster-v-name m) (monster-v-hp m))
           (display "fight or run? > ")
           (define choice (read-line))
+          (when (equal? choice "quit") (displayln "Goodbye!") (exit))
           (cond
             ; --- RUN ---
             ; show exits and let player flee
