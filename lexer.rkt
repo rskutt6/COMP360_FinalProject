@@ -13,6 +13,7 @@
        ["monster"  lexeme]
        ["type"     lexeme]
        ["power"    lexeme]
+       ["key"      lexeme]
 
        ;numbers
        [(repetition 1 +inf.0 (char-range "0" "9")) (token 'NUMBER lexeme)]
