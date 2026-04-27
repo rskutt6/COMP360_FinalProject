@@ -27,6 +27,10 @@ type : /LPAREN /"type" ID /RPAREN
 
 monster : /LPAREN /"monster" ID NUMBER /RPAREN
 
-exit : /LPAREN /"exit" ID ID /RPAREN
+exit : /LPAREN /"exit" ID ID exit-extra? /RPAREN
+exit-extra : key
+key : /LPAREN /"key" ID /RPAREN
 
 power : /LPAREN /"power" NUMBER /RPAREN
+
+
