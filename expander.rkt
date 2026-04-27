@@ -8,7 +8,7 @@
 
 (provide (rename-out [dungeon-module-begin #%module-begin]))
 (provide (matching-identifiers-out
-          #rx"^(program|room|room-body|room-element|desc|item|item-body|item-field|type|monster|exit|power)$"
+          #rx"^(program|room|room-body|room-element|desc|item|item-body|item-field|type|monster|exit|power|key)$"
           (all-defined-out)))
 
 ;; runtime data
@@ -17,7 +17,7 @@
 ;(struct room-v (name desc items monsters exits power) #:transparent)
 ;(struct item-v (name desc type) #:transparent)
 ;(struct monster-v (name hp) #:transparent)
-;(struct exit-v (direction destination) #:transparent)
+;(struct exit-v (direction destination key) #:transparent)
 
 ;; small wrapper values used while assembling room and items.
 
@@ -27,6 +27,7 @@
 (struct exit-node (value) #:transparent)
 (struct power-node (value) #:transparent)
 (struct type-node (value) #:transparent)
+(struct key-node (value) #:transparent)
 
 ;; HELPER: remove surrounding quotes from strings
 
@@ -147,6 +148,9 @@
 
 (define-macro (type NAME)
   #'(type-node NAME))
+;; ---key---
+(define-macro (key NAME)
+  #'(key-node NAME))
 
 ;; ---monster---
 
@@ -156,7 +160,10 @@
 ;; ---exit---
 
 (define-macro (exit DIR DEST)
-  #'(exit-node (exit-v DIR DEST)))
+  #'(exit-node (exit-v DIR DEST #f)))
+
+(define-macro (exit DIR DEST (key K))
+  #'(exit-node (exit-v DIR DEST K)))
 
 ;; ---power---
 
