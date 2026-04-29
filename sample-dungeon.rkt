@@ -1,0 +1,15 @@
+#lang reader "main.rkt"
+
+(room cave
+  (desc "A dark cave dripping with water")
+  (monster bat 15)
+  (exit north forest)
+  (exit south entrance))
+
+(room forest
+  (desc "Dense trees surround you")
+  (item sword
+    (desc "A sharp sword")
+    (type weapon))
+  (monster wolf 30)
+  (exit south cave))

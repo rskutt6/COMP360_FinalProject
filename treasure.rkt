@@ -1,4 +1,4 @@
-#lang comp360_FinalProject
+#lang COMP360_FinalProject
 
 (room cave
   (desc "A dark cave dripping with water")
