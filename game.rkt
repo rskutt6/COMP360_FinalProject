@@ -6,7 +6,7 @@
 ; define the data shapes for game world
 ; -----------------------------------------------
 
-(struct game (rooms) #:transparent)
+(struct game (rooms initial-health) #:transparent)
 (struct room-v (name desc items monsters exits power) #:transparent)
 (struct item-v (name desc type) #:transparent)
 (struct monster-v (name hp) #:transparent)
@@ -26,14 +26,41 @@
   (displayln "==========================================")
   (define rooms (game-rooms world))
   (define start-name (car (car rooms)))
-  (game-loop rooms start-name 10))
+  (game-loop rooms start-name (game-initial-health world) 10))  ; player health, player power
+
+; COMBAT FUNCTION (health-based rather than power-based)
+
+(define (combat player-health player-power monster)
+  (let loop ([current-health player-health]
+             [current-monster-hp (string->number (monster-v-hp monster))])
+    (if (<= current-monster-hp 0)
+        (begin
+          (printf "You defeated the ~a!\n" (monster-v-name monster))
+          current-health)  ; return health after winning
+        (begin
+          (printf "~a HP: ~a | Your Health: ~a\n" (monster-v-name monster) current-monster-hp current-health)
+          (display "Attack (a) or run (r)? > ")
+          (define choice (read-line))
+          (cond
+            [(equal? choice "r") current-health]  ; run away
+            [(equal? choice "a")
+             (let* ([damage (quotient player-power 10)]  ; simplified: power/10
+                    [new-monster-hp (- current-monster-hp damage)]
+                    [retaliation (quotient current-monster-hp 10)]
+                    [new-health (- current-health retaliation)])
+               (printf "You dealt ~a damage. Monster retaliates for ~a damage.\n" damage retaliation)
+               (if (<= new-health 0)
+                   (begin (displayln "YOU DIED!") (exit))
+                   (loop new-health new-monster-hp)))]
+            [else (displayln "Invalid choice.") (loop current-health current-monster-hp)])))))
+
 
 ; -----------------------------------------------
 ; GAME LOOP
 ; called when player enters new room or after an action
 ; -----------------------------------------------
 
-(define (game-loop rooms current player-power)
+(define (game-loop rooms current player-health player-power)
   (define r (get-room rooms current))
 
   ; ---- WIN CONDITION ----
@@ -42,16 +69,17 @@
     (displayln (room-v-desc r))
     (displayln "==========================================")
     (displayln "          ★ YOU WIN! ★")
-    (printf "    You escaped with a power of ~a!\n" player-power)
+    (printf "    You escaped with power ~a and health ~a!\n" player-power player-health)
     (displayln "==========================================")
     (exit))
 
   ; ---- PRINT ROOM INFO ----
   (displayln "==========================================")
-  (printf "  ~a~aPower: ~a\n"
+  (printf "  ~a~aPower: ~a | Health: ~a\n"
           (string-upcase (room-v-name r))
-          (make-string (max 1 (- 28 (string-length (room-v-name r)))) #\space)
-          player-power)
+          (make-string (max 1 (- 20 (string-length (room-v-name r)))) #\space)
+          player-power
+          player-health)
   (displayln "==========================================")
   (printf "  ~a\n\n" (room-v-desc r))
   (printf "  Exits:    ~a\n" (string-join (map exit-v-direction (room-v-exits r)) " | "))
@@ -91,9 +119,9 @@
   ; ---- COMBAT PHASE ----
   ; if there's a monster, player must fight or run
   
-  (define power-after-combat
+  (define health-after-combat
     (if (null? (room-v-monsters r))
-        power-after-items  
+        player-health
         (let ([m (car (room-v-monsters r))])
           (printf "A ~a blocks your path! (hp: ~a)\n" (monster-v-name m) (monster-v-hp m))
           (display "fight or run? > ")
@@ -115,26 +143,22 @@
                  (set! run-dest (exit-v-destination e))))
              ; exit or stay if invalid
              (if run-dest
-                 (game-loop rooms run-dest power-after-items)
+                 (game-loop rooms run-dest player-health power-after-items)
                  (begin
                    (displayln "Can't go that way!")
-                   (game-loop rooms current power-after-items)))]
+                   (game-loop rooms current player-health power-after-items)))]
 
             ; --- FIGHT ---
-            ; compare power to monster hp
+            ; use turn-based combat function
             [(equal? choice "fight")
-             (if (>= power-after-items (string->number (monster-v-hp m)))
-                 (begin
-                   (displayln "You defeated the monster! Power +5")
-                   (+ power-after-items 5))  ; return new power
-                 (begin
-                   (displayln "You are too weak... YOU DIED!")
-                   (exit)))]
+             (combat player-health player-power m)]
 
-            ; anything else, stay and try again
+            ; anything else, stayw and try again
             [else
              (displayln "Type 'fight' or 'run'.")
-             (game-loop rooms current power-after-items)]))))
+             (game-loop rooms current player-health power-after-items)]))))
+  
+  (define power-after-combat power-after-items)
 
   ; ---- MOVEMENT PHASE ----
   ; let the player move to another room
@@ -158,9 +182,9 @@
      
      ; go there or stay if invalid
      (if next-room
-         (game-loop rooms next-room power-after-combat)
+         (game-loop rooms next-room health-after-combat power-after-combat)
          (begin
            (displayln "Can't go that way.")
-           (game-loop rooms current power-after-combat)))]))
+           (game-loop rooms current health-after-combat power-after-combat)))]))
 
 (provide (all-defined-out))
