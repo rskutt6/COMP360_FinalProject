@@ -1,4 +1,5 @@
-#lang comp360_FinalProject
+#lang COMP360_FinalProject
+
 (room wake
   (desc "You awake underwater, lungs full of water and yet somehow not drowning. The water is cold and silent and you can see the pale light filtering through cracks above. Something is wrong, and you need to find your way back to the surface.")
   (item rusted-dagger
