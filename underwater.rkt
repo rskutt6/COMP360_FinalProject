@@ -62,4 +62,4 @@
 
 (room abyss
   (desc "The dungeon falls away into an endless underwater abyss. There is no floor, and your legs are hovering treading water. The selkie approaches slowly, eyes trained on you. Whatever happens next determines if you make it to the surface.")
-  (monster deep-thing 50))
+  (monster deep-thing 20))
