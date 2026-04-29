@@ -161,10 +161,7 @@
 ;; ---exit---
 
 (define-macro (exit DIR DEST)
-  #'(exit-node (exit-v DIR DEST #f)))
-
-(define-macro (exit DIR DEST (key K))
-  #'(exit-node (exit-v DIR DEST K)))
+  #'(exit-node (exit-v DIR DEST)))
 
 ;; ---power---
 
@@ -188,10 +185,11 @@
         [_ (error "Invalid top-level form")]))
     (with-syntax ([HEALTH health]
                   [(ROOM ...) (reverse rooms)]
+                  [(ROOM-NAMES ...) (map (lambda (r) (datum->syntax #f (cadr (syntax->list r)))) rooms)]
                   [(ROOM-ID ...) (prefix-id "room-" (map (lambda (r) (cadr (syntax->list r))) rooms))])
       #'(#%module-begin
          ROOM ...
-         (define game-world (game (list (cons ROOM-NAME ROOM-ID) ...) HEALTH))
+         (define game-world (game (list (cons ROOM-NAMES ROOM-ID) ...) HEALTH))
          (play game-world)
          (provide game-world)))))
 
